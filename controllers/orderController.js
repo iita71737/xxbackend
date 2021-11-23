@@ -14,15 +14,14 @@ let orderController = {
     getOrders: async (req, res) => {
         try {
             await Order.findAll({
-                include: [
-                    'items',
-                ],
-                raw: true,
-                nest: true,
+                include: 'items',
+                // raw: true,
+                //nest: true
             })
                 .then(orders => {
-                    const _orders = Object.assign({},orders)
-
+                    // console.log('ordersssss====>>', orders)
+                    orders = orders.map(item => item.toJSON())
+                    console.log('orders====>>', orders)
                     return res.render('orders', {
                         orders
                     })
@@ -34,25 +33,47 @@ let orderController = {
     },
 
     postOrder: (req, res) => {
-        var mailOptions = {
-            from: 'iita71737@gmail.com',
-            to: 'iita71737+ac@gmail.com',
-            subject: ` 訂單成立`,
-            text: ` 訂單成立`,
-        };
+        return Cart.findByPk(req.body.cartId, { include: 'items' }).then(cart => {
+            return Order.create({
+                name: req.body.name,
+                address: req.body.address,
+                phone: req.body.phone,
+                shipping_status: req.body.shipping_status,
+                payment_status: req.body.payment_status,
+                amount: req.body.amount,
+            }).then(order => {
 
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log('Email sent: ' + info.response);
-            }
-        });
+                var results = [];
+                for (var i = 0; i < cart.items.length; i++) {
+                    console.log(order.id, cart.items[i].id)
+                    results.push(
+                        OrderItem.create({
+                            OrderId: order.id,
+                            ProductId: cart.items[i].id,
+                            price: cart.items[i].price,
+                            quantity: cart.items[i].CartItem.quantity,
+                        })
+                    );
+                }
 
-        return Promise.all(results).then(() =>
-            res.redirect('/cart')
-        );
-    }
+                return Promise.all(results).then(() =>
+                    res.redirect('/orders')
+                );
+
+            })
+        })
+    },
+    cancelOrder: (req, res) => {
+        return Order.findByPk(req.params.id, {}).then(order => {
+            order.update({
+                ...req.body,
+                shipping_status: '-1',
+                payment_status: '-1',
+            }).then(order => {
+                return res.redirect('back')
+            })
+        })
+    },
 }
 
 module.exports = orderController
