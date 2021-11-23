@@ -20,7 +20,7 @@ let productController = {
             ]
         })
             .then(products => {
-                console.log(products)
+               // console.log(products)
                 return Cart.findByPk(req.session.cartId, {
                     include: [{
                         model: Product,
