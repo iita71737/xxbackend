@@ -19,10 +19,10 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const URL = 'https://b552-61-224-62-27.ngrok.io' //需執行./ngrokc後 對應轉址 回傳才正常
-const MerchantID = process.env.NEWEBPAY_MerchantID
-const HashKey = process.env.NEWEBPAY_HashKey
-const HashIV = process.env.NEWEBPAY_HashIV
+const URL = process.env.NEWEBPAY_ACCEPTABLE_URL //需執行./ngrokc後 對應轉址 回傳才正常
+const MerchantID = process.env.NEWEBPAY_MERCHANT_ID
+const HashKey = process.env.NEWEBPAY_HASH_KEY
+const HashIV = process.env.NEWEBPAY_HASH_IV
 const PayGateWay = "https://ccore.spgateway.com/MPG/mpg_gateway"
 const ReturnURL = URL + "/spgateway/callback?from=ReturnURL"
 const NotifyURL = URL + "/spgateway/callback?from=NotifyURL"
@@ -221,7 +221,7 @@ let orderController = {
 
             const order = await Order.findByPk(req.params.id, {})
             const tradeInfo = await getTradeInfo(order.amount, '產品名稱', 'haoxiao71737@gmail.com')
-            console.log('order===>:', tradeInfo.MerchantOrderNo)
+
             await order.update({
                 ...req.body,
                 sn: tradeInfo.MerchantOrderNo,
